@@ -1,0 +1,46 @@
+// In the Xcode Add Packages dialog, add this Swift package URL into the search bar:
+// https://github.com/google/generative-ai-swift
+
+// Add the following code to your Swift source code
+import GoogleGenerativeAI
+
+let config = GenerationConfig(
+  temperature: 0.9,
+  topP: 1,
+  topK: 1,
+  maxOutputTokens: 2048,
+)
+
+// Don't check your API key into source control!
+guard let apiKey = ProcessInfo.processInfo.environment["API_KEY"] else {
+  fatalError("Add `API_KEY` as an Environment Variable in your app's scheme.")
+}
+
+let model = GenerativeModel(
+  name: "gemini-pro",
+  apiKey: apiKey,
+  generationConfig: config,
+  safetySettings: [
+    SafetySetting(harmCategory: .harassment, threshold: .blockMediumAndAbove),
+    SafetySetting(harmCategory: .hateSpeech, threshold: .blockMediumAndAbove),
+    SafetySetting(harmCategory: .sexuallyExplicit, threshold: .blockMediumAndAbove),
+    SafetySetting(harmCategory: .dangerousContent, threshold: .blockMediumAndAbove)
+  ]
+)
+
+Task {
+  do {
+    let response = try await model.generateContent(
+      "Make conflict resolutions for the conflict given. under 500 characters",
+      "input: I am having a conflict with my friend because he says the football penalty  was a goal when it clearly wasn't Roommate won't clean shared spaces.",
+      "output: Open up a calm and respectful conversation with your friend. Share your perspective on why you believe the football penalty wasn't a goal, and encourage them to explain their viewpoint as well. Try to find common ground or consult reliable sources for clarification on the rules. If the disagreement persists, consider agreeing to disagree amicably and focus on enjoying the game together without letting the disagreement affect your friendship. Communicate your concerns, establish shared responsibilities, and set up a cleaning schedule that works for both of you.",
+      "input: I am having a conflict with my friend because he says the football penalty  was a goal when it clearly wasn't Colleague taking credit for your work.",
+      "output: Open up a calm and respectful conversation with your friend. Share your perspective on why you believe the football penalty wasn't a goal, and encourage them to explain their viewpoint as well. Try to find common ground or consult reliable sources for clarification on the rules. If the disagreement persists, consider agreeing to disagree amicably and focus on enjoying the game together without letting the disagreement affect your friendship. Schedule a private meeting, calmly express your concerns, and propose a collaborative approach to ensure proper credit is given where due.",
+      "input: I am having a conflict with my friend because he says the football penalty  was a goal when it clearly wasn't My friend keeps on taking my food at dinner on sleepovers, and I have to sleep hungry.",
+      "output: Open up a calm and respectful conversation with your friend. Share your perspective on why you believe the football penalty wasn't a goal, and encourage them to explain their viewpoint as well. Try to find common ground or consult reliable sources for clarification on the rules. If the disagreement persists, consider agreeing to disagree amicably and focus on enjoying the game together without letting the disagreement affect your friendship. "
+    )
+    print(response.text ?? "No text available")
+  } catch {
+    print(error)
+  }
+}
